@@ -3,6 +3,7 @@ package log
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"math/big"
 	"reflect"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/holiman/uint256"
-	"golang.org/x/exp/slog"
 )
 
 const (
@@ -79,7 +79,7 @@ func (h *TerminalHandler) format(buf []byte, r slog.Record, usecolor bool) []byt
 }
 
 func (h *TerminalHandler) formatAttributes(buf *bytes.Buffer, r slog.Record, color string) {
-	writeAttr := func(attr slog.Attr, first, last bool) {
+	writeAttr := func(attr slog.Attr, last bool) {
 		buf.WriteByte(' ')
 
 		if color != "" {
@@ -107,11 +107,11 @@ func (h *TerminalHandler) formatAttributes(buf *bytes.Buffer, r slog.Record, col
 	var n = 0
 	var nAttrs = len(h.attrs) + r.NumAttrs()
 	for _, attr := range h.attrs {
-		writeAttr(attr, n == 0, n == nAttrs-1)
+		writeAttr(attr, n == nAttrs-1)
 		n++
 	}
 	r.Attrs(func(attr slog.Attr) bool {
-		writeAttr(attr, n == 0, n == nAttrs-1)
+		writeAttr(attr, n == nAttrs-1)
 		n++
 		return true
 	})
@@ -340,7 +340,7 @@ func writeTimeTermFormat(buf *bytes.Buffer, t time.Time) {
 
 // writePosIntWidth writes non-negative integer i to the buffer, padded on the left
 // by zeroes to the given width. Use a width of 0 to omit padding.
-// Adapted from golang.org/x/exp/slog/internal/buffer/buffer.go
+// Adapted from pkg.go.dev/log/slog/internal/buffer
 func writePosIntWidth(b *bytes.Buffer, i, width int) {
 	// Cheap integer to fixed-width decimal ASCII.
 	// Copied from log/log.go.
